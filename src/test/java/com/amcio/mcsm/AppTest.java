@@ -31,7 +31,7 @@ public class AppTest
         assertTrue(MinecraftEngine.validateVersion("1.7.10"));
         assertTrue(MinecraftEngine.validateVersion("1.19"));
         assertFalse(MinecraftEngine.validateVersion("1..20"));
-        assertFalse(MinecraftEngine.validateVersion("1.20a"));
+        assertFalse(MinecraftEngine.validateVersion("1.20 "));
     }
 
 }
