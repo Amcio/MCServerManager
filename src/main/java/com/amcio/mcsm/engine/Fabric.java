@@ -1,4 +1,5 @@
 package com.amcio.mcsm.engine;
+import com.amcio.mcsm.util.URLFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
@@ -12,17 +13,13 @@ public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
     String API_ENDPOINT = "https://meta.fabricmc.net/v2/versions/loader/" + this.getVersion();
     public Fabric(String version) throws IllegalArgumentException {
         super(version);
-
     }
     @Override
     public MinecraftEngineType getType() {
         return MinecraftEngineType.FABRIC;
     }
     private String getLatestLoaderVersion() throws IOException {
-        URL baseURL = null;
-        try {
-            baseURL = new URI(API_ENDPOINT).toURL();
-        } catch (URISyntaxException ignored) { }
+        URL baseURL = URLFactory.create(API_ENDPOINT);
 
         return new ObjectMapper().readTree(baseURL)
                 .get(0).get("loader").get("version")
@@ -31,14 +28,11 @@ public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
     @Override
     public void download(String dest) throws IOException {
         String loaderVersion = getLatestLoaderVersion();
-        URL serverJarURL = null;
-        try {
-            // I assume that the installer version will stay mostly the same
-            // TODO: Figure out how to get this version with scraping as a last resort
-            serverJarURL = new URI(String.join("/", API_ENDPOINT, loaderVersion, "0.11.2/server/jar")).toURL();
-        } catch (URISyntaxException ignored) { }
 
-        assert serverJarURL != null;
+        // I assume that the installer version will stay mostly the same
+        // TODO: Figure out how to get this version with scraping as a last resort
+        URL serverJarURL = URLFactory.create(String.join("/", API_ENDPOINT, loaderVersion, "0.11.2/server/jar"));
+
         HttpURLConnection httpConnection = (HttpURLConnection) serverJarURL.openConnection();
         httpConnection.setRequestMethod("HEAD");
         String filename = httpConnection.getHeaderField("content-disposition")

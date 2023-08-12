@@ -27,7 +27,6 @@ public interface MinecraftEngine {
     /**
      * Downloads the engine .jar file to the specified directory
      * @param dest The directory where the file is saved
-     * @return true if successful, false if failed
      */
     void download(String dest) throws IOException;
 }
