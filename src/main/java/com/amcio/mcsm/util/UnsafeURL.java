@@ -5,7 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class URLFactory {
+public class UnsafeURL {
     /**
      * A very unsafe factory, multiple times in this project I can be 100% certain that the URL is correct.
      * This is to deduplicate this behaviour.

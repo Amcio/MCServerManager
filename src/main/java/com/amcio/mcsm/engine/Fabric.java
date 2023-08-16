@@ -1,5 +1,5 @@
 package com.amcio.mcsm.engine;
-import com.amcio.mcsm.util.URLFactory;
+import com.amcio.mcsm.util.UnsafeURL;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
@@ -19,7 +19,7 @@ public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
         return MinecraftEngineType.FABRIC;
     }
     private String getLatestLoaderVersion() throws IOException {
-        URL baseURL = URLFactory.create(API_ENDPOINT);
+        URL baseURL = UnsafeURL.create(API_ENDPOINT);
 
         return new ObjectMapper().readTree(baseURL)
                 .get(0).get("loader").get("version")
@@ -31,16 +31,16 @@ public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
 
         // I assume that the installer version will stay mostly the same
         // TODO: Figure out how to get this version with scraping as a last resort
-        URL serverJarURL = URLFactory.create(String.join("/", API_ENDPOINT, loaderVersion, "0.11.2/server/jar"));
+        URL serverJarURL = UnsafeURL.create(String.join("/", API_ENDPOINT, loaderVersion, "0.11.2/server/jar"));
 
         HttpURLConnection httpConnection = (HttpURLConnection) serverJarURL.openConnection();
         httpConnection.setRequestMethod("HEAD");
-        String filename = httpConnection.getHeaderField("content-disposition")
+        String jarName = httpConnection.getHeaderField("content-disposition")
                 .split("=")[1]
                 .trim()
                 .replace("\"", "");
         httpConnection.disconnect();
-        String finalPath = String.join(System.getProperty("file.separator"), dest, filename);
+        String finalPath = String.join(System.getProperty("file.separator"), dest, jarName);
         ReadableByteChannel readableByteChannel = Channels.newChannel(serverJarURL.openStream());
         try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath)) {
             FileChannel fileChannel = fileOutputStream.getChannel();

@@ -1,15 +1,12 @@
 package com.amcio.mcsm.engine;
 
-import com.amcio.mcsm.util.URLFactory;
+import com.amcio.mcsm.util.UnsafeURL;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -29,16 +26,16 @@ public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
 
     @Override
     public void download(String dest) throws IOException {
-        URL buildsEndpoint = URLFactory.create(API_ENDPOINT);
+        URL buildsEndpoint = UnsafeURL.create(API_ENDPOINT);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode builds = mapper.readTree(buildsEndpoint).get("builds");
         int latestBuild = builds.get(builds.size() - 1).get("build").intValue();
-        System.out.println("Latest build: " + latestBuild);
-        URL buildInfoURL = URLFactory.create(API_ENDPOINT + latestBuild);
+        System.out.println("[PAPER] Latest build: " + latestBuild);
+        URL buildInfoURL = UnsafeURL.create(API_ENDPOINT + latestBuild);
         String buildProp = mapper.readTree(buildInfoURL).at("/downloads/application/name").textValue();
 
-        URL serverJarURL = URLFactory.create(String.format("%s%s/downloads/%s",
+        URL serverJarURL = UnsafeURL.create(String.format("%s%s/downloads/%s",
                 API_ENDPOINT,
                 latestBuild,
                 buildProp));
