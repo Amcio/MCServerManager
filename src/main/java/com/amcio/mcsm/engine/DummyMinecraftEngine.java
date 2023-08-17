@@ -1,17 +1,15 @@
 package com.amcio.mcsm.engine;
 
+import com.amcio.mcsm.util.Version;
+
 public abstract class DummyMinecraftEngine implements MinecraftEngine {
-    String version;
+    Version version;
     protected DummyMinecraftEngine(String version) throws IllegalArgumentException {
-        if (MinecraftEngine.validateVersion(version)) {
-            this.version = version;
-        } else {
-            throw new IllegalArgumentException("Supplied version string is invalid!");
-        }
+        this.version = new Version(version);
     }
 
     @Override
-    public String getVersion() {
+    public Version getVersion() {
         return version;
     }
 }

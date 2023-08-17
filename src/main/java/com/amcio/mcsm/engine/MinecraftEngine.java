@@ -1,8 +1,7 @@
 package com.amcio.mcsm.engine;
 
+import com.amcio.mcsm.util.Version;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public interface MinecraftEngine {
     /**
@@ -11,18 +10,7 @@ public interface MinecraftEngine {
      */
     MinecraftEngineType getType();
 
-    String getVersion();
-
-    /**
-     * Function that validates whether a string is a minecraft version number
-     * @param version The version string to check
-     * @return true if correct, false if invalid
-     */
-    static boolean validateVersion(String version) {
-        Matcher matcher = Pattern.compile("^\\d\\.\\d\\d?(\\.\\d\\d?)?$")
-                .matcher(version);
-        return matcher.matches();
-    }
+    Version getVersion();
 
     /**
      * Downloads the engine .jar file to the specified directory

@@ -13,7 +13,7 @@ import java.nio.channels.ReadableByteChannel;
 
 public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
 
-    String API_ENDPOINT = String.format("https://api.papermc.io/v2/projects/paper/versions/%s/builds/", this.getVersion());
+    String API_ENDPOINT = String.format("https://api.papermc.io/v2/projects/paper/versions/%s/builds/", this.getVersion().toString());
 
     public Paper(String version) throws IllegalArgumentException {
         super(version);
@@ -30,6 +30,9 @@ public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode builds = mapper.readTree(buildsEndpoint).get("builds");
+        if (builds == null) {
+            throw new UnsupportedOperationException("Version " + this.version.toString() + " is unsupported");
+        }
         int latestBuild = builds.get(builds.size() - 1).get("build").intValue();
         System.out.println("[PAPER] Latest build: " + latestBuild);
         URL buildInfoURL = UnsafeURL.create(API_ENDPOINT + latestBuild);

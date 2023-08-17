@@ -20,6 +20,9 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
 
     public Forge(String version) throws IllegalArgumentException {
         super(version);
+        if (this.version.isLessThan("1.6.4")) {
+            throw new UnsupportedOperationException("Versions below 1.6.4 are not supported");
+        }
     }
 
     @Override
@@ -33,6 +36,7 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
+        // XXE attack?
         xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 
@@ -45,7 +49,7 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
                 if (startElement.getName().getLocalPart().equals("version")) {
                     event = reader.nextEvent(); // Move from <version> tag to the actual data
                     String forgeVersion = event.asCharacters().getData();
-                    if (forgeVersion.split("-")[0].equals(this.getVersion())) {
+                    if (forgeVersion.split("-")[0].equals(this.getVersion().toString())) {
                         return forgeVersion; // The first version in the list is the latest
                     }
                 }

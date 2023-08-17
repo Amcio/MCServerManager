@@ -1,5 +1,6 @@
 package com.amcio.mcsm.engine;
 import com.amcio.mcsm.util.UnsafeURL;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileOutputStream;
@@ -10,7 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
 public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
-    String API_ENDPOINT = "https://meta.fabricmc.net/v2/versions/loader/" + this.getVersion();
+    String API_ENDPOINT = "https://meta.fabricmc.net/v2/versions/loader/" + this.getVersion().toString();
     public Fabric(String version) throws IllegalArgumentException {
         super(version);
     }
@@ -20,10 +21,11 @@ public class Fabric extends DummyMinecraftEngine implements MinecraftEngine {
     }
     private String getLatestLoaderVersion() throws IOException {
         URL baseURL = UnsafeURL.create(API_ENDPOINT);
-
-        return new ObjectMapper().readTree(baseURL)
-                .get(0).get("loader").get("version")
-                .textValue();
+        JsonNode latestBuild = new ObjectMapper().readTree(baseURL).get(0);
+        if (latestBuild == null) {
+            throw new UnsupportedOperationException("Version " + this.version.toString() + " is unsupported");
+        }
+        return latestBuild.get("loader").get("version").textValue();
     }
     @Override
     public void download(String dest) throws IOException {
