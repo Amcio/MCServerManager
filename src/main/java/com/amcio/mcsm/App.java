@@ -9,7 +9,7 @@ public class App {
         ArgParser argParser = new ArgParser(args);
         String jarDestination = argParser.getPath(); // Either the path or "./", no need to worry about it later.
 
-        MinecraftEngine Instance = new Vanilla("1.20.1");
-        Instance.download(jarDestination);
+        BaseMinecraftEngine Instance = new Vanilla("1.20.1", jarDestination);
+        Instance.download();
     }
 }

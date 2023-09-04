@@ -1,22 +1,21 @@
 package com.amcio.mcsm.engine;
 
+import com.amcio.mcsm.util.NIODownloader;
 import com.amcio.mcsm.util.UnsafeURL;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
 
-public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
+public class Paper extends BaseMinecraftEngine {
 
     String API_ENDPOINT = String.format("https://api.papermc.io/v2/projects/paper/versions/%s/builds/", this.getVersion().toString());
 
-    public Paper(String version) throws IllegalArgumentException {
-        super(version);
+    public Paper(String version, String rootDirectory) throws IllegalArgumentException {
+        super(version, rootDirectory);
     }
 
     @Override
@@ -25,8 +24,8 @@ public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
     }
 
     @Override
-    public void download(String dest) throws IOException {
-        URL buildsEndpoint = UnsafeURL.create(API_ENDPOINT);
+    public void download() throws IOException {
+        URL buildsEndpoint = UnsafeURL.of(API_ENDPOINT);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode builds = mapper.readTree(buildsEndpoint).get("builds");
@@ -35,18 +34,19 @@ public class Paper extends DummyMinecraftEngine implements MinecraftEngine {
         }
         int latestBuild = builds.get(builds.size() - 1).get("build").intValue();
         System.out.println("[PAPER] Latest build: " + latestBuild);
-        URL buildInfoURL = UnsafeURL.create(API_ENDPOINT + latestBuild);
+        URL buildInfoURL = UnsafeURL.of(API_ENDPOINT + latestBuild);
         String buildProp = mapper.readTree(buildInfoURL).at("/downloads/application/name").textValue();
 
-        URL serverJarURL = UnsafeURL.create(String.format("%s%s/downloads/%s",
+        URL serverJarURL = UnsafeURL.of(String.format("%s%s/downloads/%s",
                 API_ENDPOINT,
                 latestBuild,
                 buildProp));
-        String finalPath = String.join(System.getProperty("file.separator"), dest, buildProp);
-        ReadableByteChannel readableByteChannel = Channels.newChannel(serverJarURL.openStream());
-        try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath)) {
-            FileChannel fileChannel = fileOutputStream.getChannel();
-            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-        }
+        File finalPath = Path.of(rootDirectory, buildProp).toFile();
+        NIODownloader.download(serverJarURL, finalPath);
+    }
+
+    @Override
+    public void install() {
+
     }
 }

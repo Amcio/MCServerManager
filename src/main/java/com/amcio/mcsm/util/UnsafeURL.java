@@ -12,7 +12,7 @@ public class UnsafeURL {
      * @param str The URL string
      * @return A URL object
      */
-    public static URL create(String str) {
+    public static URL of(String str) {
         URL url = null;
         try {
             url = new URI(str).toURL();

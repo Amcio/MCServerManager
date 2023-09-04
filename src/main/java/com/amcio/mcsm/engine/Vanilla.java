@@ -1,21 +1,21 @@
 package com.amcio.mcsm.engine;
 
+import com.amcio.mcsm.util.NIODownloader;
 import com.amcio.mcsm.util.UnsafeURL;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
 
-public class Vanilla extends DummyMinecraftEngine implements MinecraftEngine {
+
+public class Vanilla extends BaseMinecraftEngine {
     String API_ENDPOINT = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
 
-    public Vanilla(String version) throws IllegalArgumentException {
-        super(version);
+    public Vanilla(String version, String rootDirectory) throws IllegalArgumentException {
+        super(version, rootDirectory);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Vanilla extends DummyMinecraftEngine implements MinecraftEngine {
     }
 
     private String getVersionManifest() throws IOException {
-        URL versionManifest = UnsafeURL.create(API_ENDPOINT);
+        URL versionManifest = UnsafeURL.of(API_ENDPOINT);
         JsonNode manifestData = new ObjectMapper().readTree(versionManifest).get("versions");
         for (JsonNode version : manifestData) {
             if (version.get("id").textValue().equals(this.getVersion().toString())) {
@@ -35,14 +35,14 @@ public class Vanilla extends DummyMinecraftEngine implements MinecraftEngine {
     }
 
     private String getServerJarURL(String versionManifestURL) throws IOException {
-        URL versionManifest = UnsafeURL.create(versionManifestURL);
+        URL versionManifest = UnsafeURL.of(versionManifestURL);
         JsonNode manifestData = new ObjectMapper().readTree(versionManifest);
         System.out.println("[*] This version requires Java " + manifestData.at("/javaVersion/majorVersion").intValue());
         return manifestData.at("/downloads/server/url").textValue();
     }
 
     @Override
-    public void download(String dest) throws IOException {
+    public void download() throws IOException {
         String versionManifestURL = null;
         try {
             versionManifestURL = getVersionManifest();
@@ -50,13 +50,14 @@ public class Vanilla extends DummyMinecraftEngine implements MinecraftEngine {
             e.printStackTrace();
             System.exit(1);
         }
-        URL serverJarURL = UnsafeURL.create(getServerJarURL(versionManifestURL));
+        URL serverJarURL = UnsafeURL.of(getServerJarURL(versionManifestURL));
         String jarName = version.toString() + "-server.jar";
-        String finalPath = String.join(System.getProperty("file.separator"), dest, jarName);
-        ReadableByteChannel readableByteChannel = Channels.newChannel(serverJarURL.openStream());
-        try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath)) {
-            FileChannel fileChannel = fileOutputStream.getChannel();
-            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-        }
+        File finalPath = Path.of(rootDirectory, jarName).toFile();
+        NIODownloader.download(serverJarURL, finalPath);
+    }
+
+    @Override
+    public void install() {
+
     }
 }
