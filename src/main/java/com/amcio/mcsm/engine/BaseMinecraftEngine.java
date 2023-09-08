@@ -4,15 +4,21 @@ import com.amcio.mcsm.util.Version;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class BaseMinecraftEngine {
     Version version;
     String rootDirectory;
+    /**
+     * Runnable jar that we use to install the server, in case of Forge this will be the installer.
+     */
+    String jarName = null;
 
     BaseMinecraftEngine(String version, String rootDirectory) throws IllegalArgumentException {
         this.version = new Version(version);
@@ -20,7 +26,7 @@ public abstract class BaseMinecraftEngine {
     }
 
     protected void acceptEULA() throws IOException {
-        Path eulaFile = FileSystems.getDefault().getPath(rootDirectory, "eula.txt");
+        Path eulaFile = Path.of(rootDirectory, "eula.txt");
         List<String> newLines = new ArrayList<>();
         for (String line : Files.readAllLines(eulaFile, StandardCharsets.US_ASCII)) {
             if (!line.equals("eula=false")) {
@@ -40,7 +46,24 @@ public abstract class BaseMinecraftEngine {
     /**
      * Will run the main class for the first time, so all basic files are created. acceptEULA() should be called from here.
      */
-    public abstract void install();
+    public void install(String... args) throws IOException {
+        int status;
+        List<String> command = Stream.of("java", "-jar", jarName).collect(Collectors.toList());
+        if (!(args == null || args.length == 0)) {
+            command.addAll(List.of(args));
+        }
+        ProcessBuilder pb = new ProcessBuilder(command)
+                .inheritIO()
+                .directory(new File(rootDirectory));
+        System.out.println("[*] Running the server jar");
+        Process p = pb.start();
+        try {
+            status = p.waitFor();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("[*] Server process exited with code " + status);
+    }
 
     public abstract MinecraftEngineType getType();
 

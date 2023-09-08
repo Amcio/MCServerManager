@@ -38,17 +38,12 @@ public class Fabric extends BaseMinecraftEngine {
 
         HttpURLConnection httpConnection = (HttpURLConnection) serverJarURL.openConnection();
         httpConnection.setRequestMethod("HEAD");
-        String jarName = httpConnection.getHeaderField("content-disposition")
+        jarName = httpConnection.getHeaderField("content-disposition")
                 .split("=")[1]
                 .trim()
                 .replace("\"", "");
         httpConnection.disconnect();
         File finalPath = Path.of(rootDirectory, jarName).toFile();
         NIODownloader.download(serverJarURL, finalPath);
-    }
-
-    @Override
-    public void install() {
-
     }
 }

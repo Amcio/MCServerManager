@@ -12,9 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Forge extends BaseMinecraftEngine {
-
+    // In the future this class must hold information about the installer, and the installed server jar to run it later.
     String API_ENDPOINT = "https://maven.minecraftforge.net/net/minecraftforge/forge/";
 
     public Forge(String version, String rootDirectory) throws IllegalArgumentException {
@@ -66,15 +69,17 @@ public class Forge extends BaseMinecraftEngine {
 
         assert forgeVersion != null;
 
-        String installerJarName = String.format("forge-%s-installer.jar", forgeVersion);
-        URL installerJarURL = UnsafeURL.of(String.format("%s%s/%s", API_ENDPOINT, forgeVersion, installerJarName));
+        jarName = String.format("forge-%s-installer.jar", forgeVersion);
+        URL installerJarURL = UnsafeURL.of(String.format("%s%s/%s", API_ENDPOINT, forgeVersion, jarName));
 
-        File finalPath = Path.of(rootDirectory, installerJarName).toFile();
+        File finalPath = Path.of(rootDirectory, jarName).toFile();
         NIODownloader.download(installerJarURL, finalPath);
     }
 
     @Override
-    public void install() {
-
+    public void install(String... args) throws IOException {
+        List<String> arg = new ArrayList<>(List.of(args));  // ArrayList because List.of() is immutable.
+        arg.add("--installServer");
+        super.install(arg.toArray(new String[0]));
     }
 }

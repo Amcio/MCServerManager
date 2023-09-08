@@ -51,13 +51,8 @@ public class Vanilla extends BaseMinecraftEngine {
             System.exit(1);
         }
         URL serverJarURL = UnsafeURL.of(getServerJarURL(versionManifestURL));
-        String jarName = version.toString() + "-server.jar";
+        jarName = version.toString() + "-server.jar";
         File finalPath = Path.of(rootDirectory, jarName).toFile();
         NIODownloader.download(serverJarURL, finalPath);
-    }
-
-    @Override
-    public void install() {
-
     }
 }

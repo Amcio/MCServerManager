@@ -44,9 +44,4 @@ public class Paper extends BaseMinecraftEngine {
         File finalPath = Path.of(rootDirectory, buildProp).toFile();
         NIODownloader.download(serverJarURL, finalPath);
     }
-
-    @Override
-    public void install() {
-
-    }
 }
