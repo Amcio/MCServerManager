@@ -1,25 +1,28 @@
 package com.amcio.mcsm.engine;
 
+import com.amcio.mcsm.util.NIODownloader;
 import com.amcio.mcsm.util.UnsafeURL;
 
 import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
-
+public class Forge extends BaseMinecraftEngine {
+    // In the future this class must hold information about the installer, and the installed server jar to run it later.
     String API_ENDPOINT = "https://maven.minecraftforge.net/net/minecraftforge/forge/";
 
-    public Forge(String version) throws IllegalArgumentException {
-        super(version);
+    public Forge(String version, String rootDirectory) throws IllegalArgumentException {
+        super(version, rootDirectory);
         if (this.version.isLessThan("1.6.4")) {
             throw new UnsupportedOperationException("Versions below 1.6.4 are not supported");
         }
@@ -31,7 +34,7 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
     }
 
     private String getLatestVersion() throws IOException, XMLStreamException {
-        URL mavenMetadataURL = UnsafeURL.create(API_ENDPOINT + "maven-metadata.xml");
+        URL mavenMetadataURL = UnsafeURL.of(API_ENDPOINT + "maven-metadata.xml");
         InputStream inputStream = mavenMetadataURL.openStream();
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -59,7 +62,7 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
     }
 
     @Override
-    public void download(String dest) throws IOException {
+    public void download() throws IOException {
         String forgeVersion = null;
         try {
             forgeVersion = getLatestVersion();
@@ -67,14 +70,17 @@ public class Forge extends DummyMinecraftEngine implements MinecraftEngine {
 
         assert forgeVersion != null;
 
-        String installerJarName = String.format("forge-%s-installer.jar", forgeVersion);
-        URL installerJarURL = UnsafeURL.create(String.format("%s%s/%s", API_ENDPOINT, forgeVersion, installerJarName));
+        jarName = String.format("forge-%s-installer.jar", forgeVersion);
+        URL installerJarURL = UnsafeURL.of(String.format("%s%s/%s", API_ENDPOINT, forgeVersion, jarName));
 
-        String finalPath = String.join(System.getProperty("file.separator"), dest, installerJarName);
-        ReadableByteChannel readableByteChannel = Channels.newChannel(installerJarURL.openStream());
-        try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath)) {
-            FileChannel fileChannel = fileOutputStream.getChannel();
-            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-        }
+        File finalPath = Path.of(rootDirectory, jarName).toFile();
+        NIODownloader.download(installerJarURL, finalPath);
+    }
+
+    @Override
+    public void install(String... args) throws IOException {
+        List<String> arg = new ArrayList<>(List.of(args));  // ArrayList because List.of() is immutable.
+        arg.add("--installServer");
+        super.install(arg.toArray(new String[0]));
     }
 }

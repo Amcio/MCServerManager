@@ -2,8 +2,8 @@ package com.amcio.mcsm;
 import com.amcio.mcsm.argparser.ArgParser;
 import com.amcio.mcsm.engine.Fabric;
 import com.amcio.mcsm.engine.Forge;
-import com.amcio.mcsm.engine.MinecraftEngine;
 import com.amcio.mcsm.engine.Paper;
+import com.amcio.mcsm.engine.*;
 
 import java.io.IOException;
 
@@ -24,13 +24,14 @@ public class App {
             System.exit(1);
         }
 
-        MinecraftEngine engine = switch (selectedEngine) {
-            case "forge" -> new Forge(selectedVersion);
-            case "fabric" -> new Fabric(selectedVersion);
+        BaseMinecraftEngine Instance = switch (selectedEngine) {
+            case "forge" -> new Forge(selectedVersion, jarDestination);
+            case "fabric" -> new Fabric(selectedVersion, jarDestination);
             case "vanilla" -> throw new UnsupportedOperationException("Downloading vanilla jar is not yet supported");
-            default -> new Paper(selectedVersion);
+            default -> new Paper(selectedVersion, jarDestination);
         };
-
-        engine.download(jarDestination);
+        System.out.println("[*] Will download server of type: " + Instance.getType().toString());
+        Instance.download();
+        Instance.install();
     }
 }
