@@ -5,6 +5,7 @@ import com.amcio.mcsm.util.Version;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public abstract class BaseMinecraftEngine {
     }
 
     protected void acceptEULA() throws IOException {
+        System.out.println("[*] Auto accepting the EULA");
         Path eulaFile = Path.of(rootDirectory, "eula.txt");
         List<String> newLines = new ArrayList<>();
         for (String line : Files.readAllLines(eulaFile, StandardCharsets.US_ASCII)) {
@@ -63,6 +65,11 @@ public abstract class BaseMinecraftEngine {
             throw new RuntimeException(e);
         }
         System.out.println("[*] Server process exited with code " + status);
+        try {
+            acceptEULA();
+        } catch (NoSuchFileException e) {
+            System.out.println("[!!!] Cannot find eula.txt. Please accept it manually after first server start.");
+        }
     }
 
     public abstract MinecraftEngineType getType();

@@ -10,7 +10,8 @@ public class App {
         ArgParser argParser = new ArgParser(new String[] {"test"});
         String jarDestination = argParser.getPath(); // Either the path or "./", no need to worry about it later.
 
-        BaseMinecraftEngine Instance = new Vanilla("1.20.1", jarDestination);
+        BaseMinecraftEngine Instance = new Forge("1.20.1", jarDestination);
+        System.out.println("[*] Will download server of type: " + Instance.getType().toString());
         Instance.download();
         Instance.install();
     }
